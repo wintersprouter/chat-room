@@ -2,7 +2,7 @@ const express = require('express')
 const socket = require('socket.io')
 
 // App setup
-const PORT = 5000
+const PORT = 3000
 const app = express()
 const server = app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`)
@@ -29,6 +29,11 @@ io.on('connection', (socket) => {
     // 聊天室通知新使用者上線
     io.emit('new user', [...activeUsers])
   })
+  // 偵測到有使用者送出訊息
+  socket.on('chat message', (data) => {
+    // 把訊息傳送到聊天室
+    io.emit('chat message', data)
+  })
 
   // 偵測離線狀態
   socket.on('disconnect', () => {
@@ -36,5 +41,10 @@ io.on('connection', (socket) => {
     activeUsers.delete(socket.userId)
     // 聊天室通知該名使用者離開聊天
     io.emit('user disconnected', socket.userId)
+  })
+  // 偵測到有使用者正在打字
+  socket.on('typing', (data) => {
+    // 向聊天傳送某使用者正在打字的訊息
+    socket.broadcast.emit('typing', data)
   })
 })
